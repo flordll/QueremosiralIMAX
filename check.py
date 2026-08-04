@@ -56,12 +56,22 @@ for date, cinemas in data.get("days", {}).items():
 dates = sorted(set(dates))
 
 
-old_dates = []
+try:
+    with open(STATE, "r") as f:
+        old_dates = json.load(f)
+
+except:
+    old_dates = dates
+
+    with open(STATE, "w") as f:
+        json.dump(dates, f)
+
+    exit()
 
 
 new_dates = [d for d in dates if d not in old_dates]
 
-new_dates = ["2026-08-21"]
+new_dates = [d for d in dates if d not in old_dates]
 if new_dates:
 
     msg = "🎬 LA ODISEA - IMAX NORCENTER\n\n"
