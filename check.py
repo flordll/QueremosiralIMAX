@@ -56,18 +56,7 @@ for date, cinemas in data.get("days", {}).items():
 dates = sorted(set(dates))
 
 
-try:
-    with open(STATE, "r") as f:
-        old_dates = json.load(f)
-
-except:
-    # Primera ejecución: guarda sin avisar
-    old_dates = dates
-
-    with open(STATE, "w") as f:
-        json.dump(dates, f)
-
-    exit()
+old_dates = []
 
 
 new_dates = [d for d in dates if d not in old_dates]
