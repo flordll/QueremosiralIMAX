@@ -1,27 +1,40 @@
 import os
 import requests
-from bs4 import BeautifulSoup
+import json
 
-URL="https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
+API_URL = "https://api.voyalcine.net/films/5875/tree/3250"
 
-TOKEN=os.environ["BOT_TOKEN"]
-CHAT=os.environ["CHAT_ID"]
+TOKEN = os.environ["BOT_TOKEN"]
+CHAT = os.environ["CHAT_ID"]
 
-headers = {
-    "User-Agent": "Mozilla/5.0"
-}
+STATE = "state.json"
 
-html = requests.get(URL, headers=headers, timeout=20).text
-soup = BeautifulSoup(html, "html.parser")
+data = requests.get(API_URL, timeout=20).json()
 
-text = " ".join(soup.stripped_strings)
+# Guardamos todo lo que tenga horarios disponibles
+content = json.dumps(data, ensure_ascii=False)
 
-msg = "🔎 TEXTO ENCONTRADO:\n\n" + text[:3000]
+try:
+    with open(STATE, "r") as f:
+        old = json.load(f)
+except:
+    old = ""
 
-requests.get(
-    f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-    params={
-        "chat_id": CHAT,
-        "text": msg
-    }
-)
+if content != old:
+
+    msg = (
+        "🎬 IMAX ALERT - NUEVAS FUNCIONES\n\n"
+        "La Odisea podría tener cambios en cartelera.\n\n"
+        "🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
+    )
+
+    requests.get(
+        f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+        params={
+            "chat_id": CHAT,
+            "text": msg
+        }
+    )
+
+with open(STATE, "w") as f:
+    json.dump(content, f)
