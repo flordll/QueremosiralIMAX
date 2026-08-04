@@ -83,8 +83,7 @@ if new_dates:
 
     msg += "\n🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
 
-
-       for chat in CHATS:
+    for chat in CHATS:
         requests.get(
             f"https://api.telegram.org/bot{TOKEN}/sendMessage",
             params={
