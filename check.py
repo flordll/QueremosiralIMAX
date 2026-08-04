@@ -71,7 +71,6 @@ except:
 
 new_dates = [d for d in dates if d not in old_dates]
 
-new_dates = [d for d in dates if d not in old_dates]
 if new_dates:
 
     msg = "🎬 LA ODISEA - IMAX NORCENTER\n\n"
