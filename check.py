@@ -84,14 +84,14 @@ if new_dates:
     msg += "\n🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
 
 
-   for chat in CHATS:
-    requests.get(
-        f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-        params={
-            "chat_id": chat,
-            "text": msg
-        }
-    )
+       for chat in CHATS:
+        requests.get(
+            f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+            params={
+                "chat_id": chat,
+                "text": msg
+            }
+        )
 
 
 with open(STATE, "w") as f:
