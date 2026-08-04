@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+from datetime import datetime
 
 API_URL = "https://api.voyalcine.net/films/5875/tree/3250"
 
@@ -9,45 +10,79 @@ CHAT = os.environ["CHAT_ID"]
 
 STATE = "state.json"
 
+
+def format_date(date):
+    days = [
+        "lunes",
+        "martes",
+        "miércoles",
+        "jueves",
+        "viernes",
+        "sábado",
+        "domingo"
+    ]
+
+    months = [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre"
+    ]
+
+    d = datetime.strptime(date, "%Y-%m-%d")
+
+    return f"{days[d.weekday()].capitalize()} {d.day} de {months[d.month-1]}"
+
+
 data = requests.get(API_URL, timeout=20).json()
 
-functions = []
+# Obtener solamente fechas con IMAX Norcenter
+dates = []
 
 for date, cinemas in data.get("days", {}).items():
     for cinema in cinemas:
         if "IMAX" in cinema.get("name", ""):
-            for fmt in cinema.get("formats", []):
-                if "IMAX" in fmt.get("formatDescription", ""):
-                    for performance in fmt.get("performances", []):
-                        functions.append(
-                            {
-                                "date": date,
-                                "time": performance["showTime"]
-                            }
-                        )
+            dates.append(date)
+            break
 
-functions = sorted(functions, key=lambda x: (x["date"], x["time"]))
+dates = sorted(set(dates))
+
 
 try:
     with open(STATE, "r") as f:
-        old = json.load(f)
-except:
-    old = []
+        old_dates = json.load(f)
 
-if functions != old:
+except:
+    # Primera ejecución: guarda sin avisar
+    old_dates = dates
+
+    with open(STATE, "w") as f:
+        json.dump(dates, f)
+
+    exit()
+
+
+new_dates = [d for d in dates if d not in old_dates]
+
+
+if new_dates:
 
     msg = "🎬 LA ODISEA - IMAX NORCENTER\n\n"
+    msg += "🚨 NUEVAS FECHAS HABILITADAS\n\n"
 
-    if functions:
-        msg += "✅ Funciones disponibles:\n\n"
+    for d in new_dates:
+        msg += f"📅 {format_date(d)}\n"
 
-        for f in functions:
-            msg += f"📅 {f['date']}  🕒 {f['time']}\n"
+    msg += "\n🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
 
-    else:
-        msg += "❌ No hay funciones disponibles."
-
-    msg += "\n\n🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
 
     requests.get(
         f"https://api.telegram.org/bot{TOKEN}/sendMessage",
@@ -57,5 +92,6 @@ if functions != old:
         }
     )
 
+
 with open(STATE, "w") as f:
-    json.dump(functions, f)
+    json.dump(dates, f)
