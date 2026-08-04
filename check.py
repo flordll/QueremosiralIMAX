@@ -6,8 +6,10 @@ from datetime import datetime
 API_URL = "https://api.voyalcine.net/films/5875/tree/3250"
 
 TOKEN = os.environ["BOT_TOKEN"]
-CHAT = os.environ["CHAT_ID"]
-
+CHATS = [
+    os.environ["CHAT_ID"],
+    os.environ["CHAT_ID_FRUBI"]
+]
 STATE = "state.json"
 
 
@@ -82,10 +84,11 @@ if new_dates:
     msg += "\n🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
 
 
+   for chat in CHATS:
     requests.get(
         f"https://api.telegram.org/bot{TOKEN}/sendMessage",
         params={
-            "chat_id": CHAT,
+            "chat_id": chat,
             "text": msg
         }
     )
