@@ -11,22 +11,43 @@ STATE = "state.json"
 
 data = requests.get(API_URL, timeout=20).json()
 
-# Guardamos todo lo que tenga horarios disponibles
-content = json.dumps(data, ensure_ascii=False)
+functions = []
+
+for date, cinemas in data.get("days", {}).items():
+    for cinema in cinemas:
+        if "IMAX" in cinema.get("name", ""):
+            for fmt in cinema.get("formats", []):
+                if "IMAX" in fmt.get("formatDescription", ""):
+                    for performance in fmt.get("performances", []):
+                        functions.append(
+                            {
+                                "date": date,
+                                "time": performance["showTime"]
+                            }
+                        )
+
+functions = sorted(functions, key=lambda x: (x["date"], x["time"]))
 
 try:
     with open(STATE, "r") as f:
         old = json.load(f)
 except:
-    old = ""
+    old = []
 
-if content != old:
+if functions != old:
 
-    msg = (
-        "🎬 IMAX ALERT - NUEVAS FUNCIONES\n\n"
-        "La Odisea podría tener cambios en cartelera.\n\n"
-        "🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
-    )
+    msg = "🎬 LA ODISEA - IMAX NORCENTER\n\n"
+
+    if functions:
+        msg += "✅ Funciones disponibles:\n\n"
+
+        for f in functions:
+            msg += f"📅 {f['date']}  🕒 {f['time']}\n"
+
+    else:
+        msg += "❌ No hay funciones disponibles."
+
+    msg += "\n\n🔗 https://entradas.todoshowcase.com/showcase/pelicula?filmid=5875&house_id=3250"
 
     requests.get(
         f"https://api.telegram.org/bot{TOKEN}/sendMessage",
@@ -37,4 +58,4 @@ if content != old:
     )
 
 with open(STATE, "w") as f:
-    json.dump(content, f)
+    json.dump(functions, f)
